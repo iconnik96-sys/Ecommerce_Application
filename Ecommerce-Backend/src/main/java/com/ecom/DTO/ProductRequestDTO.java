@@ -7,7 +7,7 @@ import lombok.Data;
 public class ProductRequestDTO {
 
 
-    private String id;
+    private Long id;
 
     private String name;
     private String description;

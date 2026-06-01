@@ -39,7 +39,7 @@ public class ProductService {
                 .toList();
     }
 
-    public  String deleteProduct(String id){
+    public  String deleteProduct(Long id){
         Product existingproduct = productRepo.findById(id)
                 .orElseThrow(()->new RuntimeException("Product not found!!!"+id));
         productRepo.delete(existingproduct);
