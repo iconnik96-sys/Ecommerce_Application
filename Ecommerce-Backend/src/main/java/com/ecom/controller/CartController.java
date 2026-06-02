@@ -1,6 +1,7 @@
 package com.ecom.controller;
 
 import com.ecom.DTO.CartResponseDTO;
+import com.ecom.DTO.UpdateQuantityRequestDTO;
 import com.ecom.service.CartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,11 @@ public class CartController {
     @GetMapping("/viewcart/{userId}")
     public CartResponseDTO getCart(@PathVariable Long userId){
         return cartService.getCart(userId);
+    }
+
+    @PutMapping("/updateQuantity")
+    public CartResponseDTO updateQuantity(@RequestBody UpdateQuantityRequestDTO request){
+        return cartService.updateQuantity(request);
     }
 
 }

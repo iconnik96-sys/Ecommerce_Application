@@ -2,6 +2,7 @@ package com.ecom.service;
 
 import com.ecom.DTO.CartItemResponseDTO;
 import com.ecom.DTO.CartResponseDTO;
+import com.ecom.DTO.UpdateQuantityRequestDTO;
 import com.ecom.entity.Cart;
 import com.ecom.entity.CartItem;
 import com.ecom.entity.Product;
@@ -93,4 +94,51 @@ public class CartService {
 
         return response;
     }
+
+   public CartResponseDTO updateQuantity(UpdateQuantityRequestDTO request) {
+       User user = userRepo.findById(request.getUserId())
+               .orElseThrow(() -> new RuntimeException("User not found"));
+       Cart cart = cartRepo.findByUser(user);
+       if (cart == null) {
+           throw new RuntimeException("Cart not found");
+       }
+
+       Product product = productRepo.findById(request.getProductId())
+               .orElseThrow(() -> new RuntimeException("Product not found"));
+
+       CartItem cartItem = cartItemRepo.findByCartAndProduct(cart, product);
+
+       if (cartItem == null) {
+           throw new RuntimeException("Product not found in cart");
+       }
+
+       int newQuantity = cartItem.getQuantity() + request.getQuantityChange();
+
+       if (newQuantity <=0) {
+           cartItemRepo.delete(cartItem);
+       } else {
+           cartItem.setQuantity(newQuantity);
+           cartItemRepo.save(cartItem);
+       }
+
+       return getCart(request.getUserId());
+   }
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
