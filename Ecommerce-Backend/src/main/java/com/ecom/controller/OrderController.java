@@ -3,7 +3,6 @@ package com.ecom.controller;
 import com.ecom.DTO.OrderResponseDTO;
 import com.ecom.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.web.webauthn.api.PublicKeyCose;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,7 +27,7 @@ public class OrderController {
     }
 
     @GetMapping("/getByOrder/{orderId}")
-    public OrderResponseDTO getByOrderId(@PathVariable Long orderId){
+    public OrderResponseDTO getByOrderId(@PathVariable Long orderId) {
         return service.getOrderById(orderId);
     }
 
