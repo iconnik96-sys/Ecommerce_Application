@@ -6,6 +6,7 @@ import com.ecom.entity.User;
 import com.ecom.mapper.UserMapper;
 import com.ecom.repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,14 +15,24 @@ import java.util.List;
 public class UserService {
 
     @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
     private UserRepo userRepo;
 
     @Autowired
     private UserMapper userMapper;
 
     public UserResponseDTO adduser(UserRequestDTO requestDTO){
-        User user=userMapper.toEntity(requestDTO);
-        User saveduser=userRepo.save(user);
+
+        User user = userMapper.toEntity(requestDTO);
+
+        user.setPassword(
+                passwordEncoder.encode(user.getPassword())
+        );
+
+        User saveduser = userRepo.save(user);
+
         return userMapper.toDTO(saveduser);
     }
 
@@ -44,8 +55,11 @@ public class UserService {
                 .orElseThrow(()->new RuntimeException("email not found "+email));
 
         existinguser.setName(dto.getName());
-        existinguser.setPassword(dto.getPassword());
-
+        existinguser.setPassword(
+                passwordEncoder.encode(
+                        dto.getPassword()
+                )
+        );
         User updateduser=userRepo.save(existinguser);
         return userMapper.toDTO(updateduser);
     }
