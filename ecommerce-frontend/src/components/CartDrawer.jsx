@@ -54,7 +54,7 @@ export default function CartDrawer({ isOpen, onClose, cartData, onCheckoutSucces
   };
 
   const items = cartData?.items || [];
-  const totalPrice = cartData?.totalprice || 0;
+const totalPrice = cartData?.totalPrice ?? cartData?.totalprice ?? 0;
 
   return (
     <>
