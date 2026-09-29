@@ -4,6 +4,7 @@
     import com.ecom.entity.User;
     import com.ecom.repository.UserRepo;
     import com.ecom.security.JwtService;
+    import jakarta.validation.Valid;
     import lombok.RequiredArgsConstructor;
     import org.springframework.security.crypto.password.PasswordEncoder;
     import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@
 
         @PostMapping("/login")
         public AuthResponse login(
-                @RequestBody LoginRequest request
+                @Valid @RequestBody LoginRequest request
         ) {
 
             User user =

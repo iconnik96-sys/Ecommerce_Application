@@ -1,19 +1,5 @@
 import React, { useState } from 'react';
-
-// A mapping of product categories/keywords to emojis for stunning visual styling
-const getProductEmoji = (name = '') => {
-  const n = name.toLowerCase();
-  if (n.includes('phone') || n.includes('mobile') || n.includes('iphone')) return '📱';
-  if (n.includes('laptop') || n.includes('computer') || n.includes('macbook')) return '💻';
-  if (n.includes('watch') || n.includes('wearable')) return '⌚';
-  if (n.includes('shoe') || n.includes('sneaker') || n.includes('boot')) return '👟';
-  if (n.includes('shirt') || n.includes('clothing') || n.includes('tee')) return '👕';
-  if (n.includes('coffee') || n.includes('mug') || n.includes('cup')) return '☕';
-  if (n.includes('headphone') || n.includes('sound') || n.includes('audio')) return '🎧';
-  if (n.includes('book') || n.includes('novel')) return '📚';
-  if (n.includes('gaming') || n.includes('controller') || n.includes('playstation')) return '🎮';
-  return '🎁'; // Default stylish gift box emoji
-};
+import { getProductImage, getProductCategory } from '../utils/productImages';
 
 export default function ProductCard({ 
   product, 
@@ -28,6 +14,7 @@ export default function ProductCard({
 }) {
   const [quantity, setQuantity] = useState(1);
   const [adding, setAdding] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
 
   const incrementQty = (e) => {
     e.stopPropagation();
@@ -41,10 +28,10 @@ export default function ProductCard({
   const handleAddToCart = async (e) => {
     e.stopPropagation();
     if (!currentUser) {
-      showToast('Please sign in to add products to your cart!', 'error');
+      showToast('Please sign in to add products to your bag', 'error');
       return;
     }
-    if (currentUser.role.toLowerCase() === 'admin') {
+    if (currentUser.role && currentUser.role.toLowerCase() === 'admin') {
       showToast('Administrators cannot purchase items.', 'error');
       return;
     }
@@ -52,7 +39,7 @@ export default function ProductCard({
     setAdding(true);
     try {
       await onAddToCart(product.id, quantity);
-      setQuantity(1); // Reset
+      setQuantity(1);
     } catch (err) {
       console.error(err);
     } finally {
@@ -60,101 +47,108 @@ export default function ProductCard({
     }
   };
 
-  const isAdmin = currentUser && currentUser.role.toLowerCase() === 'admin';
-  const isCustomer = currentUser && currentUser.role.toLowerCase() === 'customer';
+  const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
+  const isCustomer = currentUser && (!currentUser.role || currentUser.role.toLowerCase() === 'customer' || currentUser.role.toLowerCase() === 'user');
+  const imageUrl = getProductImage(product);
+  const category = getProductCategory(product);
 
   return (
-    <div 
-      className="glass-card product-card animate-fade-in" 
+    <article 
+      className="product-card" 
       onClick={() => onViewDetails && onViewDetails(product)}
-      style={{ cursor: 'pointer' }}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onViewDetails && onViewDetails(product);
+        }
+      }}
+      aria-label={`View details for ${product.name}`}
     >
-      {/* Absolute positioned wishlist button for customers */}
-      {isCustomer && (
-        <button 
-          className={`wishlist-btn ${isWishlisted ? 'active' : ''}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleWishlist(product.id);
-          }}
-          title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
-          style={{
-            position: 'absolute',
-            top: '12px',
-            right: '12px',
-            background: isWishlisted ? 'rgba(239, 68, 68, 0.15)' : 'rgba(15, 23, 42, 0.65)',
-            border: `1px solid ${isWishlisted ? '#ef4444' : 'rgba(255,255,255,0.1)'}`,
-            borderRadius: '50%',
-            width: '36px',
-            height: '36px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            zIndex: 10,
-            transition: 'all 0.2s ease',
-            color: isWishlisted ? '#ef4444' : '#94a3b8'
-          }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill={isWishlisted ? "#ef4444" : "none"} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-          </svg>
-        </button>
-      )}
+      <div className="product-card-media">
+        {/* Wishlist toggle for customer */}
+        {isCustomer && (
+          <button 
+            type="button"
+            className={`wishlist-btn ${isWishlisted ? 'active' : ''}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleWishlist(product.id);
+            }}
+            title={isWishlisted ? "Remove from Saved Items" : "Save to Wishlist"}
+            aria-label={isWishlisted ? "Remove from Saved Items" : "Save to Wishlist"}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill={isWishlisted ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+          </button>
+        )}
 
-      <div className="product-image-container">
-        <span className="product-icon">{getProductEmoji(product.name)}</span>
+        <img 
+          src={imageUrl} 
+          alt={product.name}
+          className={`product-card-image ${imgLoaded ? 'loaded' : ''}`}
+          loading="lazy"
+          onLoad={() => setImgLoaded(true)}
+        />
+        <span className="product-category-tag">{category}</span>
       </div>
 
-      <div className="product-card-body">
+      <div className="product-card-content">
         <h3 className="product-card-title">{product.name}</h3>
-        <p className="product-card-desc">{product.description || 'No description available for this luxury product.'}</p>
+        <p className="product-card-desc">{product.description || 'Precision crafted tech accessory.'}</p>
         
-        <div className="product-card-footer">
+        <div className="product-card-meta">
           <span className="product-price">${Number(product.price).toFixed(2)}</span>
-          
+          {product.stock !== undefined && product.stock > 0 && product.stock <= 5 && (
+            <span className="stock-warning">Only {product.stock} left</span>
+          )}
+        </div>
+
+        <div className="product-card-actions">
           {isAdmin ? (
-            <div style={{ display: 'flex', gap: '8px', zIndex: 5 }}>
+            <div className="admin-card-actions">
               <button 
-                className="btn btn-secondary" 
+                type="button"
+                className="btn btn-secondary btn-sm" 
                 onClick={(e) => {
                   e.stopPropagation();
                   onEdit && onEdit(product);
                 }}
-                style={{ padding: '6px 12px', fontSize: '0.8rem' }}
               >
-                📝 Edit
+                Edit
               </button>
               <button 
-                className="btn btn-danger" 
+                type="button"
+                className="btn btn-danger btn-sm" 
                 onClick={(e) => {
                   e.stopPropagation();
                   onDelete(product.id);
                 }}
-                style={{ padding: '6px 12px', fontSize: '0.8rem', background: '#ef4444' }}
               >
                 Delete
               </button>
             </div>
           ) : (
-            <div className="action-buttons" style={{ zIndex: 5 }}>
-              <div className="quantity-controller">
-                <button className="qty-btn" onClick={decrementQty}>-</button>
-                <span className="qty-val">{quantity}</span>
-                <button className="qty-btn" onClick={incrementQty}>+</button>
+            <div className="customer-card-actions">
+              <div className="qty-control" onClick={(e) => e.stopPropagation()}>
+                <button type="button" className="qty-btn" onClick={decrementQty} aria-label="Decrease quantity">−</button>
+                <span className="qty-value">{quantity}</span>
+                <button type="button" className="qty-btn" onClick={incrementQty} aria-label="Increase quantity">+</button>
               </div>
               <button 
-                className="btn btn-primary"
+                type="button"
+                className="btn btn-primary btn-sm add-bag-btn"
                 onClick={handleAddToCart}
                 disabled={adding}
-                style={{ padding: '8px 14px', fontSize: '0.85rem' }}
               >
-                {adding ? 'Adding...' : 'Add'}
+                {adding ? 'Adding...' : 'Add to Bag'}
               </button>
             </div>
           )}
         </div>
       </div>
-    </div>
+    </article>
   );
 }

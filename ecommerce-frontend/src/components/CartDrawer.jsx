@@ -1,20 +1,6 @@
 import React, { useState } from 'react';
 import { orderService, cartService } from '../services/api';
-
-// Help get matching icon for cart items
-const getItemEmoji = (name = '') => {
-  const n = name.toLowerCase();
-  if (n.includes('phone') || n.includes('mobile') || n.includes('iphone')) return '📱';
-  if (n.includes('laptop') || n.includes('computer') || n.includes('macbook')) return '💻';
-  if (n.includes('watch') || n.includes('wearable')) return '⌚';
-  if (n.includes('shoe') || n.includes('sneaker') || n.includes('boot')) return '👟';
-  if (n.includes('shirt') || n.includes('clothing') || n.includes('tee')) return '👕';
-  if (n.includes('coffee') || n.includes('mug') || n.includes('cup')) return '☕';
-  if (n.includes('headphone') || n.includes('sound') || n.includes('audio')) return '🎧';
-  if (n.includes('book') || n.includes('novel')) return '📚';
-  if (n.includes('gaming') || n.includes('controller') || n.includes('playstation')) return '🎮';
-  return '🎁';
-};
+import { getProductImage } from '../utils/productImages';
 
 export default function CartDrawer({ isOpen, onClose, cartData, onCheckoutSuccess, onCartUpdated, showToast }) {
   const [checkingOut, setCheckingOut] = useState(false);
@@ -23,14 +9,14 @@ export default function CartDrawer({ isOpen, onClose, cartData, onCheckoutSucces
 
   const handleCheckout = async () => {
     if (!cartData || !cartData.items || cartData.items.length === 0) {
-      showToast('Your cart is empty!', 'error');
+      showToast('Your bag is currently empty.', 'error');
       return;
     }
     
     setCheckingOut(true);
     try {
       await orderService.place(cartData.userId);
-      showToast('🎉 Order Placed Successfully! Thank you for shopping at Luminary.', 'success');
+      showToast('Order confirmed. Thank you for choosing Luminary.', 'success');
       onCheckoutSuccess();
       onClose();
     } catch (err) {
@@ -54,80 +40,102 @@ export default function CartDrawer({ isOpen, onClose, cartData, onCheckoutSucces
   };
 
   const items = cartData?.items || [];
-const totalPrice = cartData?.totalPrice ?? cartData?.totalprice ?? 0;
+  const totalPrice = cartData?.totalPrice ?? cartData?.totalprice ?? 0;
 
   return (
     <>
-      <div className="cart-drawer-overlay animate-fade-in" onClick={onClose}></div>
-      <div className="cart-drawer">
-        <div className="cart-header">
-          <h2 className="cart-header-title">
-            <span>🛒</span> Shopping Bag
-          </h2>
-          <button className="close-drawer-btn" onClick={onClose}>&times;</button>
-        </div>
+      <div className="cart-drawer-overlay animate-fade-in" onClick={onClose} aria-hidden="true" />
+      <aside className="cart-drawer" role="dialog" aria-modal="true" aria-label="Shopping Bag">
+        <header className="cart-header">
+          <div className="cart-header-title-group">
+            <span className="cart-header-badge">✦</span>
+            <h2 className="cart-header-title">Shopping Bag</h2>
+            <span className="cart-count-pill">({items.reduce((acc, i) => acc + (i.quantity || 1), 0)})</span>
+          </div>
+          <button className="close-drawer-btn" onClick={onClose} aria-label="Close cart">&times;</button>
+        </header>
 
         <div className="cart-items-container">
           {items.length === 0 ? (
             <div className="cart-empty animate-fade-in">
-              <span style={{ fontSize: '4rem', opacity: 0.5 }}>🛍️</span>
-              <p style={{ fontWeight: 600, fontSize: '1.1rem', color: '#f8fafc' }}>Your bag is empty</p>
-              <p style={{ fontSize: '0.88rem', color: '#94a3b8' }}>Fill it with premium products from our shop!</p>
+              <div className="cart-empty-circle">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <path d="M16 10a4 4 0 0 1-8 0" />
+                </svg>
+              </div>
+              <h3 className="cart-empty-title">Your bag is empty</h3>
+              <p className="cart-empty-text">Discover curated accessories crafted for modern workspaces and daily commutes.</p>
               <button 
+                type="button"
                 className="btn btn-secondary" 
                 onClick={onClose}
-                style={{ marginTop: '10px' }}
               >
-                Start Browsing
+                Browse Catalog
               </button>
             </div>
           ) : (
-            items.map((item, idx) => (
-              <div key={item.productId || idx} className="cart-item animate-fade-in">
-                <div style={{ fontSize: '2rem', display: 'flex', alignItems: 'center' }}>
-                  {getItemEmoji(item.name)}
-                </div>
-                <div className="cart-item-info">
-                  <span className="cart-item-title">{item.name}</span>
-                  
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
-                    <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Qty:</span>
-                    <div className="quantity-controller" style={{ display: 'flex', height: '26px' }}>
-                      <button className="qty-btn" style={{ width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => handleUpdateQty(item.productId, -1)}>-</button>
-                      <span className="qty-val" style={{ width: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{item.quantity}</span>
-                      <button className="qty-btn" style={{ width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => handleUpdateQty(item.productId, 1)}>+</button>
+            <ul className="cart-item-list">
+              {items.map((item, idx) => {
+                const img = getProductImage({ name: item.name });
+                return (
+                  <li key={item.productId || idx} className="cart-item animate-fade-in">
+                    <img src={img} alt={item.name} className="cart-item-thumb" />
+                    <div className="cart-item-info">
+                      <div className="cart-item-head">
+                        <h4 className="cart-item-title">{item.name}</h4>
+                        <span className="cart-item-subtotal">
+                          ${Number(item.price * item.quantity).toFixed(2)}
+                        </span>
+                      </div>
+                      
+                      <div className="cart-item-bottom">
+                        <div className="qty-control">
+                          <button 
+                            type="button" 
+                            className="qty-btn" 
+                            onClick={() => handleUpdateQty(item.productId, -1)}
+                            aria-label="Decrease quantity"
+                          >−</button>
+                          <span className="qty-value">{item.quantity}</span>
+                          <button 
+                            type="button" 
+                            className="qty-btn" 
+                            onClick={() => handleUpdateQty(item.productId, 1)}
+                            aria-label="Increase quantity"
+                          >+</button>
+                        </div>
+                        <span className="cart-item-unit-price">${Number(item.price).toFixed(2)} each</span>
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="cart-item-price-row" style={{ marginTop: '12px' }}>
-                    <span className="cart-item-price">${Number(item.price).toFixed(2)}</span>
-                    <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#a855f7' }}>
-                      Sub: ${Number(item.price * item.quantity).toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </div>
 
         {items.length > 0 && (
-          <div className="cart-footer">
+          <footer className="cart-footer">
+            <div className="cart-shipping-notice">
+              <span>✦ Complimentary ground shipping on all orders</span>
+            </div>
             <div className="cart-total-row">
-              <span className="cart-total-label">Total Amount:</span>
+              <span className="cart-total-label">Subtotal</span>
               <span className="cart-total-value">${Number(totalPrice).toFixed(2)}</span>
             </div>
             <button 
-              className="btn btn-primary"
+              type="button"
+              className="btn btn-primary cart-checkout-btn"
               onClick={handleCheckout}
               disabled={checkingOut}
-              style={{ width: '100%', height: '48px' }}
             >
-              {checkingOut ? 'Securing Transaction...' : 'Proceed to Checkout'}
+              {checkingOut ? 'Placing Order...' : 'Complete Purchase'}
             </button>
-          </div>
+          </footer>
         )}
-      </div>
+      </aside>
     </>
   );
 }
