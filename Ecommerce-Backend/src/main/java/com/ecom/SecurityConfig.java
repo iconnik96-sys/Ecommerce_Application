@@ -26,24 +26,37 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        List<String> origins = new ArrayList<>(List.of(
-                "http://localhost:5173",
-                "http://localhost:3000",
-                "http://localhost",
-                "http://localhost:80"
+        List<String> allowedOriginPatterns = new ArrayList<>(List.of(
+                "http://localhost:*",
+                "https://*.vercel.app",
+                "https://*.netlify.app",
+                "https://*.onrender.com"
         ));
-        String envOrigins = System.getenv("FRONTEND_URL_TEST");
+
+        // Read all possible environment variable names for frontend URL(s)
+        String envOrigins = System.getenv("FRONTEND_URL");
+        if (envOrigins == null || envOrigins.isBlank()) {
+            envOrigins = System.getenv("FRONTEND_URL_TEST");
+        }
+        if (envOrigins == null || envOrigins.isBlank()) {
+            envOrigins = System.getenv("CORS_ALLOWED_ORIGINS");
+        }
         if (envOrigins != null && !envOrigins.isBlank()) {
             for (String o : envOrigins.split(",")) {
                 String trimmed = o.trim();
-                if (!trimmed.isEmpty() && !origins.contains(trimmed)) {
-                    origins.add(trimmed);
+                if (!trimmed.isEmpty() && !allowedOriginPatterns.contains(trimmed)) {
+                    allowedOriginPatterns.add(trimmed);
                 }
             }
         }
-        configuration.setAllowedOrigins(origins);
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Cache-Control"));
+
+        configuration.setAllowedOriginPatterns(allowedOriginPatterns);
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Authorization", "Content-Disposition"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
@@ -59,6 +72,8 @@ public class SecurityConfig {
 
                         // Public APIs
                         .requestMatchers(
+                                "/health",
+                                "/api/health",
                                 "/auth/**",
                                 "/ecom/users/register",
                                 "/ecom/products/getAllProducts",

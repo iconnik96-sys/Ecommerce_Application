@@ -160,12 +160,49 @@ Frontend runs on `http://localhost:5173`.
 
 ## 6. Deployment Guide
 
-### Backend (Render / Docker)
-The backend includes a root `Dockerfile`:
-```bash
-docker build -t luminary-backend -f Ecommerce-Backend/Dockerfile .
-docker run -p 8080:8080 -e SPRING_DATASOURCE_URL=... luminary-backend
-```
+### A. Database (Supabase PostgreSQL)
+1. In your **Supabase Dashboard**, open **Project Settings** > **Database**.
+2. Scroll down to **Connection String** and choose the **Transaction Pooler** (or **Session Pooler**) tab on port `6543` (this provides IPv4 support needed by cloud platforms like Render).
+3. Copy the connection URI:
+   ```
+   postgresql://postgres.[YOUR-PROJECT-REF]:[YOUR-PASSWORD]@aws-0-[YOUR-REGION].pooler.supabase.com:6543/postgres
+   ```
+4. Or in standard JDBC format:
+   ```
+   jdbc:postgresql://aws-0-[YOUR-REGION].pooler.supabase.com:6543/postgres?sslmode=require
+   ```
 
-### Frontend (Netlify / Vercel)
-Set build command to `npm run build` with publish directory `dist`. Configure `VITE_API_URL` to point to the deployed Spring Boot backend.
+---
+
+### B. Backend Deployment (Render)
+1. Sign in to [Render](https://render.com) and click **New +** > **Web Service**.
+2. Connect your GitHub repository.
+3. Configure the service:
+   - **Name**: `luminary-backend`
+   - **Language / Runtime**: `Docker`
+   - **Root Directory**: `Ecommerce-Backend` (or leave blank; root Dockerfile is also supported)
+   - **Health Check Path**: `/api/health`
+4. Add the following **Environment Variables**:
+   | Key | Value / Example |
+   |---|---|
+   | `DB_URL` | Your Supabase connection string from Step A |
+   | `DB_USERNAME` | `postgres.[YOUR-PROJECT-REF]` (if not included in DB_URL) |
+   | `DB_PASSWORD` | Your Supabase database password |
+   | `JWT_SECRET` | A secure random 32+ character string (e.g. `openssl rand -base64 48`) |
+   | `GROQ_API_KEY` | Your Groq API key (`gsk_...`) |
+   | `FRONTEND_URL` | `https://your-frontend.vercel.app` (optional; `*.vercel.app` is pre-whitelisted) |
+5. Click **Create Web Service**. Once deployed, copy your Render service URL (e.g. `https://luminary-backend.onrender.com`).
+
+---
+
+### C. Frontend Deployment (Vercel)
+1. Sign in to [Vercel](https://vercel.com) and click **Add New...** > **Project**.
+2. Import your GitHub repository.
+3. In project settings:
+   - **Framework Preset**: `Vite`
+   - **Root Directory**: Click edit and choose `ecommerce-frontend`
+4. Add the **Environment Variable**:
+   - Key: `VITE_API_BASE_URL` (or `VITE_API_URL`)
+   - Value: `https://luminary-backend.onrender.com` (your Render backend URL, without trailing slash)
+5. Click **Deploy**. Vercel will build the SPA and route all URLs seamlessly using `vercel.json`.
+

@@ -1,0 +1,11 @@
+{
+  "buildCommand": "cd ecommerce-frontend && npm install && npm run build",
+  "outputDirectory": "ecommerce-frontend/dist",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/ecommerce-frontend/dist/index.html"
+    }
+  ]
+}
