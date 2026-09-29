@@ -27,7 +27,7 @@ export default function App() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [currentView, setCurrentView] = useState('shop'); // 'shop' | 'admin' | 'user-dashboard'
-  const [dashTab, setDashTab] = useState('profile'); // 'profile' | 'addresses' | 'wishlist' | 'orders'
+  const [dashTab, setDashTab] = useState('orders'); // 'orders' | 'wishlist' | 'addresses' | 'profile'
 
   // Data States
   const [products, setProducts] = useState([]);
@@ -187,6 +187,14 @@ export default function App() {
   // Load tab data inside User Dashboard
   useEffect(() => {
     if (currentView === 'user-dashboard' && currentUser) {
+      fetchUserOrders();
+      fetchAddresses();
+      fetchWishlist();
+    }
+  }, [currentView, currentUser]);
+
+  useEffect(() => {
+    if (currentView === 'user-dashboard' && currentUser) {
       if (dashTab === 'addresses') {
         fetchAddresses();
       } else if (dashTab === 'wishlist') {
@@ -195,7 +203,7 @@ export default function App() {
         fetchUserOrders();
       }
     }
-  }, [currentView, dashTab]);
+  }, [dashTab]);
 
   // Handle product searches (debounce)
   useEffect(() => {
@@ -480,11 +488,17 @@ export default function App() {
       {/* Dynamic Notifications */}
       <Toast message={toast.message} type={toast.type} onClose={closeToast} />
 
-      {/* Styled Glassmorphic Header */}
-      <header className="app-header glass-panel">
+      {/* Modern Refined Header */}
+      <header className="app-header">
         <a href="/" className="logo" onClick={(e) => { e.preventDefault(); setCurrentView('shop'); }}>
-          <span style={{ fontSize: '1.8rem' }}>🛍️</span>
-          <span className="gradient-text">Luminary</span>
+          <div className="logo-badge">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <path d="M16 10a4 4 0 0 1-8 0"></path>
+            </svg>
+          </div>
+          <span>Luminary</span>
         </a>
 
         <nav className="nav-links">
@@ -492,6 +506,7 @@ export default function App() {
             className={`nav-item ${currentView === 'shop' ? 'active' : ''}`}
             onClick={() => setCurrentView('shop')}
           >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
             Browse Shop
           </span>
           {currentUser && currentUser.role.toLowerCase() === 'admin' && (
@@ -499,14 +514,16 @@ export default function App() {
               className={`nav-item ${currentView === 'admin' ? 'active' : ''}`}
               onClick={() => setCurrentView('admin')}
             >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
               Admin Dashboard
             </span>
           )}
           {currentUser && currentUser.role.toLowerCase() === 'user' && (
             <span 
               className={`nav-item ${currentView === 'user-dashboard' ? 'active' : ''}`}
-              onClick={() => { setCurrentView('user-dashboard'); setDashTab('profile'); }}
+              onClick={() => { setCurrentView('user-dashboard'); setDashTab('orders'); }}
             >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
               My Dashboard
             </span>
           )}
@@ -516,8 +533,8 @@ export default function App() {
           {currentUser ? (
             <>
               {currentUser.role.toLowerCase() === 'user' && (
-                <button className="cart-btn" onClick={() => setIsCartOpen(true)}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                <button className="cart-btn" onClick={() => setIsCartOpen(true)} title="View Cart">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
                   {cartItemsCount > 0 && <span className="cart-badge">{cartItemsCount}</span>}
                 </button>
               )}
@@ -528,7 +545,7 @@ export default function App() {
                 onClick={() => {
                   if (currentUser.role.toLowerCase() === 'user') {
                     setCurrentView('user-dashboard');
-                    setDashTab('profile');
+                    setDashTab('orders');
                   }
                 }}
               >
@@ -541,7 +558,7 @@ export default function App() {
                 </div>
               </div>
 
-              <button className="btn btn-secondary" onClick={handleLogout} style={{ padding: '8px 16px' }}>
+              <button className="btn btn-secondary" onClick={handleLogout} style={{ padding: '7px 14px', fontSize: '0.82rem' }}>
                 Sign Out
               </button>
             </>
@@ -646,6 +663,9 @@ export default function App() {
         {currentView === 'admin' && (
           currentUser?.role.toLowerCase() === 'admin' ? (
             <AdminPanel 
+              products={products}
+              onDeleteProduct={handleDeleteProduct}
+              onStartEdit={handleEditProductToggle}
               editProduct={editProduct}
               onCancelEdit={() => setEditProduct(null)}
               onProductAdded={() => {
@@ -655,8 +675,17 @@ export default function App() {
               showToast={showToast}
             />
           ) : (
-            <div style={{ textAlign: 'center', padding: '100px' }}>
-              <h2>Access Denied</h2>
+            <div className="glass-panel" style={{ textAlign: 'center', padding: '80px 20px', maxWidth: '480px', margin: '60px auto' }}>
+              <div className="empty-state-icon" style={{ margin: '0 auto 16px' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+              </div>
+              <h2 style={{ fontSize: '1.25rem', color: '#ffffff', marginBottom: '8px' }}>Access Restricted</h2>
+              <p style={{ color: 'var(--text-secondary)', marginBottom: '24px', fontSize: '0.88rem' }}>
+                You must have an administrator account to view store operations and manage system registry.
+              </p>
               <button className="btn btn-primary" onClick={() => setCurrentView('shop')}>Back to Shop</button>
             </div>
           )
@@ -664,270 +693,399 @@ export default function App() {
 
         {/* CUSTOMER USER DASHBOARD */}
         {currentView === 'user-dashboard' && currentUser && (
-          <div className="admin-container animate-fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '30px', width: '100%' }}>
+          <div className="animate-fade-in" style={{ width: '100%' }}>
             
-            {/* Dashboard Navigation Sidebar */}
-            <div className="admin-sidebar" style={{ width: '100%' }}>
-              <div className="glass-panel admin-card">
-                <h2 className="admin-card-title">
-                  <span>✨</span> Dashboard
-                </h2>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <button 
-                    className={`btn ${dashTab === 'profile' ? 'btn-primary' : 'btn-secondary'}`} 
-                    onClick={() => setDashTab('profile')}
-                    style={{ width: '100%', justifyContent: 'flex-start' }}
-                  >
-                    👤 Profile Details
-                  </button>
-                  <button 
-                    className={`btn ${dashTab === 'addresses' ? 'btn-primary' : 'btn-secondary'}`} 
-                    onClick={() => setDashTab('addresses')}
-                    style={{ width: '100%', justifyContent: 'flex-start' }}
-                  >
-                    📍 Shipping Addresses
-                  </button>
-                  <button 
-                    className={`btn ${dashTab === 'wishlist' ? 'btn-primary' : 'btn-secondary'}`} 
-                    onClick={() => setDashTab('wishlist')}
-                    style={{ width: '100%', justifyContent: 'flex-start' }}
-                  >
-                    ❤️ My Wishlist
-                  </button>
-                  <button 
-                    className={`btn ${dashTab === 'orders' ? 'btn-primary' : 'btn-secondary'}`} 
-                    onClick={() => setDashTab('orders')}
-                    style={{ width: '100%', justifyContent: 'flex-start' }}
-                  >
-                    📦 Order History
-                  </button>
+            {/* Customer Account Header Banner */}
+            <div className="customer-banner">
+              <div className="customer-info-group">
+                <div className="customer-avatar-large">
+                  {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <div className="customer-meta">
+                  <h2>Welcome, {currentUser.name}</h2>
+                  <p>
+                    {currentUser.email} &bull; <span className="role-badge role-customer" style={{ padding: '2px 8px', fontSize: '0.72rem' }}>Verified Account</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="customer-stats-strip">
+                <div className="stat-pill">
+                  <span className="stat-pill-label">Orders</span>
+                  <span className="stat-pill-val">{userOrders.length}</span>
+                </div>
+                <div className="stat-pill">
+                  <span className="stat-pill-label">Wishlist</span>
+                  <span className="stat-pill-val">{wishlistedProductIds.length}</span>
+                </div>
+                <div className="stat-pill">
+                  <span className="stat-pill-label">Addresses</span>
+                  <span className="stat-pill-val">{userAddresses.length}</span>
                 </div>
               </div>
             </div>
 
-            {/* Dashboard Action Content Area */}
-            <div className="glass-panel admin-card" style={{ height: 'fit-content', gridColumn: 'span 2', width: '100%' }}>
+            {/* 2-Column Dashboard Layout */}
+            <div className="user-dash-container">
               
-              {/* Profile sub-tab */}
-              {dashTab === 'profile' && (
-                <div>
-                  <h2 className="admin-card-title">👤 Manage Personal Profile</h2>
-                  <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '480px', margin: '0 auto', textAlign: 'left' }}>
-                    <div className="form-group">
-                      <label className="form-label">Email Address (Read-only)</label>
-                      <input type="text" className="form-control" value={currentUser.email} disabled style={{ opacity: 0.6 }} />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Full Name</label>
-                      <input 
-                        type="text" 
-                        className="form-control" 
-                        value={profileName} 
-                        onChange={(e) => setProfileName(e.target.value)} 
-                        required 
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Update/Verify Password</label>
-                      <input 
-                        type="password" 
-                        className="form-control" 
-                        placeholder="Type new or current password..." 
-                        value={profilePassword} 
-                        onChange={(e) => setProfilePassword(e.target.value)} 
-                        required 
-                      />
-                    </div>
-                    <button type="submit" className="btn btn-primary" style={{ width: '100%', height: '44px', marginTop: '10px' }} disabled={profileSaving}>
-                      {profileSaving ? 'Saving Changes...' : 'Save Profile Details'}
+              {/* Sidebar Navigation */}
+              <div className="glass-panel" style={{ padding: '16px', height: 'fit-content' }}>
+                <div className="dash-sidebar-nav">
+                  <button 
+                    className={`dash-nav-btn ${dashTab === 'orders' ? 'active' : ''}`}
+                    onClick={() => setDashTab('orders')}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                      <line x1="3" y1="6" x2="21" y2="6"></line>
+                      <path d="M16 10a4 4 0 0 1-8 0"></path>
+                    </svg>
+                    <span style={{ flex: 1 }}>Order History</span>
+                    <span className="dash-tab-badge">{userOrders.length}</span>
+                  </button>
+
+                  <button 
+                    className={`dash-nav-btn ${dashTab === 'wishlist' ? 'active' : ''}`}
+                    onClick={() => setDashTab('wishlist')}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                    <span style={{ flex: 1 }}>Saved Wishlist</span>
+                    <span className="dash-tab-badge">{wishlistedProductIds.length}</span>
+                  </button>
+
+                  <button 
+                    className={`dash-nav-btn ${dashTab === 'addresses' ? 'active' : ''}`}
+                    onClick={() => setDashTab('addresses')}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                      <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span style={{ flex: 1 }}>Shipping Addresses</span>
+                    <span className="dash-tab-badge">{userAddresses.length}</span>
+                  </button>
+
+                  <button 
+                    className={`dash-nav-btn ${dashTab === 'profile' ? 'active' : ''}`}
+                    onClick={() => setDashTab('profile')}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>Profile & Security</span>
+                  </button>
+
+                  <div style={{ borderTop: '1px solid var(--border-subtle)', margin: '8px 0', paddingTop: '8px' }}>
+                    <button 
+                      className="dash-nav-btn"
+                      onClick={() => setCurrentView('shop')}
+                      style={{ color: 'var(--text-tertiary)' }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                      </svg>
+                      <span>Return to Catalog</span>
                     </button>
-                  </form>
-                </div>
-              )}
-
-              {/* Addresses sub-tab */}
-              {dashTab === 'addresses' && (
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <h2 className="admin-card-title" style={{ margin: 0 }}>📍 My Shipping Addresses</h2>
-                    {!addressFormOpen && (
-                      <button className="btn btn-primary" onClick={() => { setEditingAddress(null); setAddressFormOpen(true); }} style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
-                        + Add Address
-                      </button>
-                    )}
                   </div>
+                </div>
+              </div>
 
-                  {addressFormOpen ? (
-                    <div className="glass-panel" style={{ padding: '24px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', background: 'rgba(15,23,42,0.2)' }}>
-                      <h3 style={{ marginBottom: '16px', fontSize: '1.1rem' }}>
-                        {editingAddress ? '📝 Edit Address Detail' : '➕ Add Shipping Address'}
-                      </h3>
-                      <form onSubmit={handleAddressSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', textAlign: 'left' }}>
-                        <div className="form-group">
-                          <label className="form-label">Full Name</label>
-                          <input type="text" className="form-control" placeholder="John Doe" value={addrFullName} onChange={(e) => setAddrFullName(e.target.value)} required />
-                        </div>
-                        <div className="form-group">
-                          <label className="form-label">Mobile Number</label>
-                          <input type="text" className="form-control" placeholder="+1 (555) 000-0000" value={addrMobile} onChange={(e) => setAddrMobile(e.target.value)} required />
-                        </div>
-                        <div className="form-group" style={{ gridColumn: 'span 2' }}>
-                          <label className="form-label">Street / Address Line</label>
-                          <input type="text" className="form-control" placeholder="Apt 4B, 100 Main St" value={addrAddressLine} onChange={(e) => setAddrAddressLine(e.target.value)} required />
-                        </div>
-                        <div className="form-group">
-                          <label className="form-label">City</label>
-                          <input type="text" className="form-control" placeholder="New York" value={addrCity} onChange={(e) => setAddrCity(e.target.value)} required />
-                        </div>
-                        <div className="form-group">
-                          <label className="form-label">State / Region</label>
-                          <input type="text" className="form-control" placeholder="NY" value={addrState} onChange={(e) => setAddrState(e.target.value)} required />
-                        </div>
-                        <div className="form-group">
-                          <label className="form-label">Pincode / ZIP</label>
-                          <input type="text" className="form-control" placeholder="10001" value={addrPincode} onChange={(e) => setAddrPincode(e.target.value)} required />
-                        </div>
-                        <div style={{ gridColumn: 'span 2', display: 'flex', gap: '10px', marginTop: '10px' }}>
-                          <button type="submit" className="btn btn-primary" style={{ flex: 1, height: '44px' }}>
-                            {editingAddress ? 'Update Address' : 'Save Address'}
-                          </button>
-                          <button type="button" className="btn btn-secondary" onClick={() => setAddressFormOpen(false)} style={{ height: '44px' }}>
-                            Cancel
-                          </button>
-                        </div>
-                      </form>
+              {/* Main Content Area */}
+              <div className="glass-panel" style={{ padding: '28px', height: 'fit-content' }}>
+                
+                {/* 1. ORDER HISTORY */}
+                {dashTab === 'orders' && (
+                  <div>
+                    <div style={{ marginBottom: '22px' }}>
+                      <h2 style={{ fontSize: '1.2rem', fontWeight: 600, color: '#ffffff', marginBottom: '4px' }}>
+                        Order History
+                      </h2>
+                      <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)' }}>
+                        All your recent transactions and order status details.
+                      </p>
                     </div>
-                  ) : (
-                    <div>
-                      {userAddresses.length === 0 ? (
-                        <div className="empty-state">
-                          <span className="empty-state-icon">📍</span>
-                          <p>You have not registered any shipping address.</p>
+
+                    {userOrdersLoading ? (
+                      <div style={{ padding: '50px 0', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                        Retrieving your purchase history...
+                      </div>
+                    ) : userOrders.length === 0 ? (
+                      <div className="empty-state">
+                        <div className="empty-state-icon">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                          </svg>
                         </div>
-                      ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
-                          {userAddresses.map((addr) => (
-                            <div key={addr.id} className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '100%', border: '1px solid rgba(255,255,255,0.05)' }}>
-                              <strong style={{ fontSize: '1.05rem', color: '#f8fafc', display: 'block', marginBottom: '8px' }}>{addr.fullName}</strong>
-                              <span style={{ fontSize: '0.88rem', color: '#94a3b8', display: 'block' }}>📞 {addr.mobile}</span>
-                              <p style={{ margin: '12px 0', fontSize: '0.9rem', color: '#e2e8f0', flexGrow: 1 }}>
-                                {addr.addressLine}<br />
-                                {addr.city}, {addr.state} - {addr.pincode}
-                              </p>
-                              <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px', marginTop: 'auto' }}>
-                                <button className="btn btn-secondary" onClick={() => startEditAddress(addr)} style={{ flex: 1, padding: '6px 12px', fontSize: '0.8rem' }}>
-                                  Edit
-                                </button>
-                                <button className="btn btn-danger" onClick={() => handleDeleteAddress(addr.id)} style={{ flex: 1, padding: '6px 12px', fontSize: '0.8rem', background: '#ef4444' }}>
-                                  Delete
-                                </button>
+                        <h3>No orders placed yet</h3>
+                        <p>When you complete a purchase, your invoices and shipment tracking will appear here.</p>
+                        <button className="btn btn-primary" onClick={() => setCurrentView('shop')}>
+                          Browse Catalog
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        {userOrders.map((order) => (
+                          <div key={order.orderId} className="order-card">
+                            <div className="order-card-header">
+                              <div className="order-meta-col">
+                                <span className="label">Order Reference</span>
+                                <span className="val" style={{ color: '#ffffff' }}>#{order.orderId}</span>
+                              </div>
+                              <div className="order-meta-col">
+                                <span className="label">Date Placed</span>
+                                <span className="val">{order.orderDate ? new Date(order.orderDate).toLocaleDateString() : 'N/A'}</span>
+                              </div>
+                              <div className="order-meta-col">
+                                <span className="label">Total Paid</span>
+                                <span className="val" style={{ color: '#ffffff' }}>${Number(order.amount).toFixed(2)}</span>
+                              </div>
+                              <div>
+                                <span className={`role-badge ${order.status === 'CANCELLED' ? 'status-cancelled' : 'status-placed'}`}>
+                                  {order.status === 'CANCELLED' ? (
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                                  ) : (
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                  )}
+                                  {order.status}
+                                </span>
                               </div>
                             </div>
-                          ))}
+
+                            {/* Order Items */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '6px 0' }}>
+                              <span style={{ fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-tertiary)', fontWeight: 600 }}>
+                                Purchased Items:
+                              </span>
+                              {order.orderItems && order.orderItems.map((item, idx) => (
+                                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.86rem', color: 'var(--text-secondary)' }}>
+                                  <span>&bull; {item.productName || `Product #${item.productId}`} &times; {item.quantity}</span>
+                                  <span style={{ fontWeight: 600, color: '#ffffff' }}>${Number(item.price).toFixed(2)}</span>
+                                </div>
+                              ))}
+                            </div>
+
+                            {order.status !== 'CANCELLED' && (
+                              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '14px', paddingTop: '12px', borderTop: '1px solid var(--border-subtle)' }}>
+                                <button 
+                                  className="btn btn-danger" 
+                                  onClick={() => handleCancelUserOrder(order.orderId)}
+                                  style={{ padding: '5px 12px', fontSize: '0.78rem' }}
+                                >
+                                  Cancel Order
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 2. SAVED WISHLIST */}
+                {dashTab === 'wishlist' && (
+                  <div>
+                    <div style={{ marginBottom: '22px' }}>
+                      <h2 style={{ fontSize: '1.2rem', fontWeight: 600, color: '#ffffff', marginBottom: '4px' }}>
+                        Saved Wishlist
+                      </h2>
+                      <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)' }}>
+                        Products you have saved to purchase later.
+                      </p>
+                    </div>
+
+                    {wishlistedProductIds.length === 0 ? (
+                      <div className="empty-state">
+                        <div className="empty-state-icon">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                          </svg>
                         </div>
+                        <h3>Your wishlist is currently empty</h3>
+                        <p>Tap the heart icon on any product in the store to save it here.</p>
+                        <button className="btn btn-primary" onClick={() => setCurrentView('shop')}>
+                          Browse Catalog
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="product-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
+                        {products.filter(p => wishlistedProductIds.includes(p.id)).map(product => (
+                          <ProductCard
+                            key={product.id}
+                            product={product}
+                            currentUser={currentUser}
+                            onAddToCart={handleAddToCart}
+                            onDelete={handleDeleteProduct}
+                            onEdit={handleEditProductToggle}
+                            onToggleWishlist={handleToggleWishlist}
+                            isWishlisted={true}
+                            onViewDetails={setSelectedProduct}
+                            showToast={showToast}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 3. SHIPPING ADDRESSES */}
+                {dashTab === 'addresses' && (
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
+                      <div>
+                        <h2 style={{ fontSize: '1.2rem', fontWeight: 600, color: '#ffffff', marginBottom: '4px' }}>
+                          Shipping Addresses
+                        </h2>
+                        <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)' }}>
+                          Manage saved delivery addresses for accelerated checkout.
+                        </p>
+                      </div>
+
+                      {!addressFormOpen && (
+                        <button 
+                          className="btn btn-primary" 
+                          onClick={() => { setEditingAddress(null); setAddressFormOpen(true); }}
+                          style={{ padding: '7px 14px', fontSize: '0.82rem' }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                          Add Address
+                        </button>
                       )}
                     </div>
-                  )}
-                </div>
-              )}
 
-              {/* Wishlist sub-tab */}
-              {dashTab === 'wishlist' && (
-                <div>
-                  <h2 className="admin-card-title">❤️ My Wishlist</h2>
-                  {wishlistedProductIds.length === 0 ? (
-                    <div className="empty-state">
-                      <span className="empty-state-icon">❤️</span>
-                      <p>Your wishlist is empty. Add items from the catalog.</p>
-                      <button className="btn btn-secondary" onClick={() => setCurrentView('shop')}>Browse Products</button>
-                    </div>
-                  ) : (
-                    <div className="product-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
-                      {products.filter(p => wishlistedProductIds.includes(p.id)).map(product => (
-                        <ProductCard
-                          key={product.id}
-                          product={product}
-                          currentUser={currentUser}
-                          onAddToCart={handleAddToCart}
-                          onDelete={handleDeleteProduct}
-                          onEdit={handleEditProductToggle}
-                          onToggleWishlist={handleToggleWishlist}
-                          isWishlisted={true}
-                          onViewDetails={setSelectedProduct}
-                          showToast={showToast}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Orders sub-tab */}
-              {dashTab === 'orders' && (
-                <div>
-                  <h2 className="admin-card-title">📦 Order History</h2>
-                  {userOrdersLoading ? (
-                    <div style={{ padding: '40px', color: '#94a3b8' }}>Loading past purchases...</div>
-                  ) : userOrders.length === 0 ? (
-                    <div className="empty-state">
-                      <span className="empty-state-icon">🛍️</span>
-                      <p>You have not placed any orders yet.</p>
-                      <button className="btn btn-secondary" onClick={() => setCurrentView('shop')}>Shop Now</button>
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'left' }}>
-                      {userOrders.map((order) => (
-                        <div key={order.orderId} className="glass-panel" style={{ padding: '20px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px', marginBottom: '12px' }}>
-                            <div>
-                              <span style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block' }}>ORDER NUMBER</span>
-                              <strong style={{ color: '#06b6d4' }}>#{order.orderId}</strong>
-                            </div>
-                            <div>
-                              <span style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block' }}>ORDER DATE</span>
-                              <span style={{ color: '#e2e8f0' }}>{order.orderDate ? new Date(order.orderDate).toLocaleDateString() : 'N/A'}</span>
-                            </div>
-                            <div>
-                              <span style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block' }}>TOTAL AMOUNT</span>
-                              <strong style={{ color: '#a855f7' }}>${Number(order.amount).toFixed(2)}</strong>
-                            </div>
-                            <div>
-                              <span style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block' }}>STATUS</span>
-                              <span className="role-badge" style={{
-                                background: order.status === 'CANCELLED' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(34, 197, 94, 0.15)',
-                                color: order.status === 'CANCELLED' ? '#f87171' : '#4ade80',
-                                border: `1px solid ${order.status === 'CANCELLED' ? '#ef4444' : '#22c55e'}`,
-                                display: 'inline-block',
-                                marginTop: '4px'
-                              }}>
-                                {order.status}
-                              </span>
-                            </div>
+                    {addressFormOpen ? (
+                      <div className="glass-panel" style={{ padding: '24px', background: 'var(--surface-elevated)', marginBottom: '20px' }}>
+                        <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#ffffff', marginBottom: '16px' }}>
+                          {editingAddress ? 'Edit Address' : 'New Shipping Address'}
+                        </h3>
+                        <form onSubmit={handleAddressSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', textAlign: 'left' }}>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label className="form-label">Full Name</label>
+                            <input type="text" className="form-control" placeholder="Jane Doe" value={addrFullName} onChange={(e) => setAddrFullName(e.target.value)} required />
                           </div>
-
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <span style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>Purchased Items:</span>
-                            {order.orderItems && order.orderItems.map((item, idx) => (
-                              <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: '#e2e8f0' }}>
-                                <span>🎁 {item.productName || `Product ID: ${item.productId}`} x {item.quantity}</span>
-                                <span>${Number(item.price).toFixed(2)}</span>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label className="form-label">Mobile Number</label>
+                            <input type="text" className="form-control" placeholder="+1 (555) 000-0000" value={addrMobile} onChange={(e) => setAddrMobile(e.target.value)} required />
+                          </div>
+                          <div className="form-group" style={{ gridColumn: '1 / -1', marginBottom: 0 }}>
+                            <label className="form-label">Street Address</label>
+                            <input type="text" className="form-control" placeholder="100 Main St, Suite 400" value={addrAddressLine} onChange={(e) => setAddrAddressLine(e.target.value)} required />
+                          </div>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label className="form-label">City</label>
+                            <input type="text" className="form-control" placeholder="Seattle" value={addrCity} onChange={(e) => setAddrCity(e.target.value)} required />
+                          </div>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label className="form-label">State / Region</label>
+                            <input type="text" className="form-control" placeholder="WA" value={addrState} onChange={(e) => setAddrState(e.target.value)} required />
+                          </div>
+                          <div className="form-group" style={{ marginBottom: 0 }}>
+                            <label className="form-label">Postal Code / ZIP</label>
+                            <input type="text" className="form-control" placeholder="98101" value={addrPincode} onChange={(e) => setAddrPincode(e.target.value)} required />
+                          </div>
+                          <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '10px', marginTop: '10px' }}>
+                            <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
+                              {editingAddress ? 'Update Address' : 'Save Address'}
+                            </button>
+                            <button type="button" className="btn btn-secondary" onClick={() => setAddressFormOpen(false)}>
+                              Cancel
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    ) : (
+                      <div>
+                        {userAddresses.length === 0 ? (
+                          <div className="empty-state">
+                            <div className="empty-state-icon">
+                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                              </svg>
+                            </div>
+                            <h3>No shipping addresses registered</h3>
+                            <p>Save your delivery locations to speed up future orders.</p>
+                            <button className="btn btn-primary" onClick={() => setAddressFormOpen(true)}>
+                              Add Address
+                            </button>
+                          </div>
+                        ) : (
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
+                            {userAddresses.map((addr) => (
+                              <div key={addr.id} className="glass-panel" style={{ padding: '18px', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                <strong style={{ fontSize: '0.96rem', color: '#ffffff', marginBottom: '4px' }}>{addr.fullName}</strong>
+                                <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>Phone: {addr.mobile}</span>
+                                <p style={{ fontSize: '0.86rem', color: 'var(--text-secondary)', lineHeight: 1.5, flexGrow: 1, margin: '8px 0' }}>
+                                  {addr.addressLine}<br />
+                                  {addr.city}, {addr.state} {addr.pincode}
+                                </p>
+                                <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid var(--border-subtle)', paddingTop: '12px', marginTop: 'auto' }}>
+                                  <button className="btn btn-secondary" onClick={() => startEditAddress(addr)} style={{ flex: 1, padding: '5px 10px', fontSize: '0.78rem' }}>
+                                    Edit
+                                  </button>
+                                  <button className="btn btn-danger" onClick={() => handleDeleteAddress(addr.id)} style={{ flex: 1, padding: '5px 10px', fontSize: '0.78rem' }}>
+                                    Delete
+                                  </button>
+                                </div>
                               </div>
                             ))}
                           </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
 
-                          {order.status !== 'CANCELLED' && (
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px' }}>
-                              <button className="btn btn-danger" onClick={() => handleCancelUserOrder(order.orderId)} style={{ padding: '6px 14px', fontSize: '0.8rem', background: '#ef4444' }}>
-                                Cancel Order
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                {/* 4. PROFILE & SECURITY */}
+                {dashTab === 'profile' && (
+                  <div>
+                    <div style={{ marginBottom: '22px' }}>
+                      <h2 style={{ fontSize: '1.2rem', fontWeight: 600, color: '#ffffff', marginBottom: '4px' }}>
+                        Personal Profile & Security
+                      </h2>
+                      <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)' }}>
+                        Update your account name and authentication credentials.
+                      </p>
                     </div>
-                  )}
-                </div>
-              )}
+
+                    <form onSubmit={handleSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '440px', textAlign: 'left' }}>
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label">Email Address (Read-only)</label>
+                        <input type="text" className="form-control" value={currentUser.email} disabled style={{ opacity: 0.6 }} />
+                      </div>
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label">Full Name</label>
+                        <input 
+                          type="text" 
+                          className="form-control" 
+                          value={profileName} 
+                          onChange={(e) => setProfileName(e.target.value)} 
+                          required 
+                        />
+                      </div>
+                      <div className="form-group" style={{ marginBottom: 0 }}>
+                        <label className="form-label">Confirm or New Password</label>
+                        <input 
+                          type="password" 
+                          className="form-control" 
+                          placeholder="Type new or current password..." 
+                          value={profilePassword} 
+                          onChange={(e) => setProfilePassword(e.target.value)} 
+                          required 
+                        />
+                      </div>
+                      <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '8px' }} disabled={profileSaving}>
+                        {profileSaving ? 'Saving Changes...' : 'Save Profile Details'}
+                      </button>
+                    </form>
+                  </div>
+                )}
+
+              </div>
 
             </div>
           </div>
@@ -935,13 +1093,20 @@ export default function App() {
 
       </main>
 
-      {/* Styled Footer */}
+      {/* Styled Modern Footer */}
       <footer className="app-footer">
         <div className="footer-logo">
-          🛍️ <span className="gradient-text">Luminary E-Commerce</span>
+          <div className="logo-badge" style={{ width: '24px', height: '24px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <path d="M16 10a4 4 0 0 1-8 0"></path>
+            </svg>
+          </div>
+          <span style={{ color: '#ffffff', fontWeight: 600 }}>Luminary Commerce</span>
         </div>
         <p className="footer-text">
-          &copy; {new Date().getFullYear()} Luminary Inc. All rights reserved. Crafted with absolute precision.
+          &copy; {new Date().getFullYear()} Luminary Platform &bull; Engineered with Spring Boot &amp; React architecture.
         </p>
       </footer>
 

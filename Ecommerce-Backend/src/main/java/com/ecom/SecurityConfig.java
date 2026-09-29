@@ -14,6 +14,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.ArrayList;
 import java.util.List;
 
 @Configuration
@@ -25,10 +26,22 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Replace * with your actual Netlify URL
-        configuration.setAllowedOrigins(List.of(
-                System.getenv().getOrDefault("FRONTEND_URL_TEST", "http://localhost:5173")
+        List<String> origins = new ArrayList<>(List.of(
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "http://localhost",
+                "http://localhost:80"
         ));
+        String envOrigins = System.getenv("FRONTEND_URL_TEST");
+        if (envOrigins != null && !envOrigins.isBlank()) {
+            for (String o : envOrigins.split(",")) {
+                String trimmed = o.trim();
+                if (!trimmed.isEmpty() && !origins.contains(trimmed)) {
+                    origins.add(trimmed);
+                }
+            }
+        }
+        configuration.setAllowedOrigins(origins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Cache-Control"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

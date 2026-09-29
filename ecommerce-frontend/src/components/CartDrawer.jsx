@@ -62,7 +62,8 @@ const totalPrice = cartData?.totalPrice ?? cartData?.totalprice ?? 0;
       <div className="cart-drawer">
         <div className="cart-header">
           <h2 className="cart-header-title">
-            <span>🛒</span> Shopping Bag
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+            Shopping Bag
           </h2>
           <button className="close-drawer-btn" onClick={onClose}>&times;</button>
         </div>
@@ -70,9 +71,11 @@ const totalPrice = cartData?.totalPrice ?? cartData?.totalprice ?? 0;
         <div className="cart-items-container">
           {items.length === 0 ? (
             <div className="cart-empty animate-fade-in">
-              <span style={{ fontSize: '4rem', opacity: 0.5 }}>🛍️</span>
-              <p style={{ fontWeight: 600, fontSize: '1.1rem', color: '#f8fafc' }}>Your bag is empty</p>
-              <p style={{ fontSize: '0.88rem', color: '#94a3b8' }}>Fill it with premium products from our shop!</p>
+              <div className="empty-state-icon" style={{ width: '50px', height: '50px', borderRadius: '50%', background: 'var(--surface-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+              </div>
+              <p style={{ fontWeight: 600, fontSize: '1.05rem', color: '#ffffff' }}>Your bag is empty</p>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Explore items from our catalog to get started.</p>
               <button 
                 className="btn btn-secondary" 
                 onClick={onClose}

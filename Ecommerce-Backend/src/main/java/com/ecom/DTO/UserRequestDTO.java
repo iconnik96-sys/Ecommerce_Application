@@ -1,7 +1,6 @@
 package com.ecom.DTO;
 
 
-import jakarta.persistence.Column;
 import lombok.Data;
 
 @Data
