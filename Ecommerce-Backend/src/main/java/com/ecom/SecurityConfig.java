@@ -62,7 +62,9 @@ public class SecurityConfig {
                                 "/auth/**",
                                 "/ecom/users/register",
                                 "/ecom/products/getAllProducts",
-                                "/ecom/products/getByName/**"
+                                "/ecom/products/getByName/**",
+                                "/api/ai/recommendations/**",
+                                "/api/ai/review-summary/**"
                         ).permitAll()
 
                         // Admin-only APIs
@@ -70,13 +72,16 @@ public class SecurityConfig {
                                 "/ecom/products/addProduct",
                                 "/ecom/products/deleteproduct/**",
                                 "/ecom/users/getall",
-                                "/ecom/users/deleteuser/**"
+                                "/ecom/users/deleteuser/**",
+                                "/api/ai/admin/**"
                         ).hasRole("ADMIN")
 
-                        // Logged-in users
+                        // Logged-in users (AI chat, search, and all other endpoints)
                         .requestMatchers(
                                 "/ecom/users/getbyemail/**",
-                                "/ecom/users/editinfo/**"
+                                "/ecom/users/editinfo/**",
+                                "/api/ai/chat",
+                                "/api/ai/search"
                         ).authenticated()
 
                         .anyRequest()
