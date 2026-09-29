@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { authService, userService } from '../services/api';
 
 export default function AuthModal({ isOpen, onClose, onLoginSuccess, showToast }) {
@@ -9,68 +9,69 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, showToast }
   const [role, setRole] = useState('user');
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen) onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password || (!isLogin && !name)) {
-      showToast('Please fill in all fields', 'error');
+      showToast('Please fill in all required fields.', 'error');
       return;
     }
 
     setLoading(true);
     try {
       if (isLogin) {
-        // Sign In Flow: Call JWT login
         const loginData = await authService.login(email, password);
         const token = loginData.token;
-        
-        // Save token to localStorage so interceptor picks it up
         localStorage.setItem('luminary_token', token);
 
-        // Retrieve user details by email
         const userData = await userService.getUserByEmail(email);
 
         if (userData && userData.email) {
-          // Check role alignment
           if (userData.role.toLowerCase() !== role.toLowerCase()) {
-            showToast(`User found, but role is '${userData.role}' instead of selected '${role}'`, 'error');
+            showToast(`Role mismatch: this account is registered as '${userData.role}'.`, 'error');
             localStorage.removeItem('luminary_token');
             setLoading(false);
             return;
           }
           
-          showToast(`Welcome back, ${userData.name}!`, 'success');
+          showToast(`Welcome back, ${userData.name}.`, 'success');
           onLoginSuccess(userData, token);
           onClose();
         } else {
-          showToast('Account not found.', 'error');
+          showToast('Account could not be verified.', 'error');
           localStorage.removeItem('luminary_token');
         }
       } else {
-        // Register Flow: Register then login
         const registerPayload = {
           name,
           email,
           password,
-          role: role.toUpperCase() // match backend Role enum USER/ADMIN
+          role: role.toUpperCase()
         };
 
         await authService.register(registerPayload);
         
-        // Auto-login after registration
         const loginData = await authService.login(email, password);
         const token = loginData.token;
         localStorage.setItem('luminary_token', token);
 
         const userData = await userService.getUserByEmail(email);
         
-        showToast('Registration successful! Welcome.', 'success');
+        showToast('Registration complete. Welcome to Luminary.', 'success');
         onLoginSuccess(userData, token);
         onClose();
       }
     } catch (err) {
-      const errorMsg = err.response?.data?.message || err.message || 'An error occurred during authentication';
+      const errorMsg = err.response?.data?.message || err.message || 'Authentication failed. Please verify credentials.';
       showToast(errorMsg, 'error');
     } finally {
       setLoading(false);
@@ -78,16 +79,21 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, showToast }
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content glass-panel animate-fade-in">
-        <button className="modal-close" onClick={onClose}>&times;</button>
+    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+      <div className="modal-content animate-fade-in" onClick={(e) => e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose} aria-label="Close dialog">&times;</button>
         
-        <h2 className="modal-title gradient-text">
-          {isLogin ? 'Welcome Back' : 'Create Account'}
-        </h2>
-        <p className="modal-subtitle">
-          {isLogin ? 'Sign in to access your premium catalog' : 'Join us for a tailored shopping experience'}
-        </p>
+        <header className="auth-header">
+          <div className="auth-brand-mark">✦</div>
+          <h2 id="auth-modal-title" className="modal-title">
+            {isLogin ? 'Welcome Back' : 'Create an Account'}
+          </h2>
+          <p className="modal-subtitle">
+            {isLogin 
+              ? 'Access your curated desk collection, saved orders, and wishlist.' 
+              : 'Join Luminary for curated tech essentials and tailored recommendations.'}
+          </p>
+        </header>
 
         <div className="auth-toggle">
           <button 
@@ -106,15 +112,15 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, showToast }
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          
+        <form onSubmit={handleSubmit} className="auth-form">
           {!isLogin && (
             <div className="form-group">
-              <label className="form-label">Full Name</label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="John Doe"
+              <label htmlFor="auth-name" className="form-label">Full Name</label>
+              <input 
+                id="auth-name"
+                type="text" 
+                className="form-input" 
+                placeholder="Eleanor Vance" 
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required={!isLogin}
@@ -123,11 +129,12 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, showToast }
           )}
 
           <div className="form-group">
-            <label className="form-label">Email Address</label>
-            <input
-              type="email"
-              className="form-control"
-              placeholder="name@example.com"
+            <label htmlFor="auth-email" className="form-label">Email Address</label>
+            <input 
+              id="auth-email"
+              type="email" 
+              className="form-input" 
+              placeholder="eleanor@studio.co" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -135,11 +142,12 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, showToast }
           </div>
 
           <div className="form-group">
-            <label className="form-label">Password</label>
-            <input
-              type="password"
-              className="form-control"
-              placeholder="••••••••"
+            <label htmlFor="auth-password" className="form-label">Password</label>
+            <input 
+              id="auth-password"
+              type="password" 
+              className="form-input" 
+              placeholder="••••••••••••" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -147,24 +155,24 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, showToast }
           </div>
 
           <div className="form-group">
-            <label className="form-label">Select Account Role</label>
-            <select
-              className="form-control select-control"
+            <label htmlFor="auth-role" className="form-label">Account Role</label>
+            <select 
+              id="auth-role"
+              className="form-input"
               value={role}
               onChange={(e) => setRole(e.target.value)}
             >
-              <option value="user">User</option>
-              <option value="admin">Administrator</option>
+              <option value="user">Customer (Shop & Manage Orders)</option>
+              <option value="admin">Administrator (Catalog & Inventory)</option>
             </select>
           </div>
 
           <button 
             type="submit" 
-            className="btn btn-primary"
-            style={{ width: '100%', marginTop: '10px', height: '48px' }}
+            className="btn btn-primary auth-submit-btn" 
             disabled={loading}
           >
-            {loading ? 'Authenticating...' : isLogin ? 'Sign In' : 'Sign Up'}
+            {loading ? 'Processing...' : (isLogin ? 'Sign In to Luminary' : 'Create Account')}
           </button>
         </form>
       </div>
