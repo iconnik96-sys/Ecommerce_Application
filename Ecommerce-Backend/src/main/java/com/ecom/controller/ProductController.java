@@ -3,6 +3,7 @@ package com.ecom.controller;
 import com.ecom.DTO.ProductRequestDTO;
 import com.ecom.DTO.ProductResponseDTO;
 import com.ecom.service.ProductService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +18,7 @@ public class ProductController {
     private ProductService productService;
 
     @PostMapping("/addProduct")
-    public ProductResponseDTO addProduct(@RequestBody ProductRequestDTO requestDTO){
+    public ProductResponseDTO addProduct(@Valid @RequestBody ProductRequestDTO requestDTO){
         return productService.addProduct(requestDTO);
     }
 

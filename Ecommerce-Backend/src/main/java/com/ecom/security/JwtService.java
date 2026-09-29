@@ -2,6 +2,7 @@ package com.ecom.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -10,12 +11,12 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    private final String SECRET =
-            "mysecretkeymysecretkeymysecretkey123456";
+    @Value("${jwt.secret:mysecretkeymysecretkeymysecretkey123456}")
+    private String secret;
 
     private Key getKey() {
         return Keys.hmacShaKeyFor(
-                SECRET.getBytes()
+                secret.getBytes()
         );
     }
 

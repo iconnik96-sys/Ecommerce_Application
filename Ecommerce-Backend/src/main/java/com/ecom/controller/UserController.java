@@ -3,6 +3,7 @@ package com.ecom.controller;
 import com.ecom.DTO.UserRequestDTO;
 import com.ecom.DTO.UserResponseDTO;
 import com.ecom.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +18,7 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/register")
-    public UserResponseDTO adduser(@RequestBody UserRequestDTO user){
+    public UserResponseDTO adduser(@Valid @RequestBody UserRequestDTO user){
         return userService.adduser(user);
     }
 
