@@ -187,4 +187,36 @@ export const reviewService = {
   },
 };
 
+// AI Services
+export const aiService = {
+  chat: async (message, history) => {
+    const response = await API.post('/api/ai/chat', { message, history });
+    return response.data;
+  },
+  search: async (query) => {
+    const response = await API.post('/api/ai/search', { query });
+    return response.data;
+  },
+  recommendations: async (productId) => {
+    const response = await API.get(`/api/ai/recommendations/${productId}`);
+    return response.data;
+  },
+  reviewSummary: async (productId) => {
+    const response = await API.get(`/api/ai/review-summary/${productId}`);
+    return response.data;
+  },
+  generateDescription: async (productName, category, price, existingDescription) => {
+    const response = await API.post('/api/ai/admin/generate-description', {
+      productName, category, price, existingDescription
+    });
+    return response.data;
+  },
+  suggestTags: async (productName, description) => {
+    const response = await API.post('/api/ai/admin/suggest-tags', {
+      productName, description
+    });
+    return response.data;
+  },
+};
+
 export default API;
